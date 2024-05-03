@@ -1,6 +1,6 @@
 import { xchacha20poly1305 } from "@noble/ciphers/chacha";
 import { utf8ToBytes } from "@noble/ciphers/utils";
-import { randomBytes } from "@noble/ciphers/webcrypto/utils";
+import { randomBytes } from "@noble/ciphers/webcrypto";
 const key = randomBytes(32);
 const nonce = randomBytes(24);
 const chacha = xchacha20poly1305(key, nonce);

@@ -1,22 +1,26 @@
-// import * from '@noble/curves'; // Error: use sub-imports, to ensure small app size
-import { secp256k1 } from "@noble/curves/secp256k1"; // ESM and Common.js
-// import { secp256k1 } from 'npm:@noble/curves@1.2.0/secp256k1'; // Deno
-const priv = secp256k1.utils.randomPrivateKey();
-const pub = secp256k1.getPublicKey(priv);
-// const msg = new Uint8Array(32).fill(1); // message hash (not message) in ecdsa
+import { Hex } from "@noble/curves/abstract/utils";
+import { ed25519ctx } from "@noble/curves/ed25519";
+
+const priv = ed25519ctx.utils.randomPrivateKey();
+const pub = ed25519ctx.getPublicKey(priv);
+
 const message = "Hello World";
 let msg = new TextEncoder().encode(message);
-const sig = secp256k1.sign(msg, priv); // `{prehash: true}` option is available
-// msg = new TextEncoder().encode("DeadBeef"); // if you change the message it'll be invalid
-const isValid = secp256k1.verify(sig, msg, pub) === true;
 
-// hex strings are also supported besides Uint8Arrays:
-const privHex = "46c930bc7bb4db7f55da20798697421b98c4175a52c630294d75a84b9c126236";
-const pub2 = secp256k1.getPublicKey(privHex);
+const signingContext = Buffer.from("signing context").toString("hex") as Hex;
+const sig = ed25519ctx.sign(msg, priv, {
+  context: signingContext,
+});
+
+const isValid =
+  ed25519ctx.verify(sig, msg, pub, {
+    context: signingContext,
+    zip215: true, // zip215 is true by default, when the options object is provided it must be explicitly provided
+  }) === true;
 
 console.log("Private key:     ", Buffer.from(priv).toString("hex"));
 console.log("Public key:      ", Buffer.from(pub).toString("hex"));
-console.log("Public key 2:    ", Buffer.from(pub2).toString("hex"));
-console.log("Signature:       ", sig.toCompactHex());
+// console.log("Signature:       ", sig.toCompactHex());
+console.log("Signature:       ", Buffer.from(sig).toString("hex"));
 console.log("Message:         ", Buffer.from(msg).toString());
 console.log("Valid signature? ", isValid);
